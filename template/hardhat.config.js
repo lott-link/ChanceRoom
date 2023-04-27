@@ -1,5 +1,4 @@
 require("@nomicfoundation/hardhat-toolbox");
-require('@openzeppelin/hardhat-upgrades');
 
 const { PRIVATE_KEY, SMARTCHAIN_API_KEY, MUMBAI_API_KEY, POLYGONSCAN_API_KEY } = require('./secret.json');
 

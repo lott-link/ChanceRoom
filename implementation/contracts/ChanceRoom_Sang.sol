@@ -118,7 +118,7 @@ contract ChanceRoom_Sang is Initializable, OwnableFactory, TemplateView, ERC721H
     /**
      * @dev Returns the name and address of the implementation of this chance room which cloned from.
      */
-    function implementation() public view returns (
+    function implInfo() public view returns (
         string memory name,
         address addr
     ) {

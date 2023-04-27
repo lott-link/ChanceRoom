@@ -15,7 +15,7 @@ interface IChanceRoom is IERC165 {
         address addr, 
         uint256 id
     );
-    function implementation() external view returns (
+    function implInfo() external view returns (
         string memory name,
         address addr
     );
