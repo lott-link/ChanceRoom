@@ -326,9 +326,9 @@ contract ChanceRoom_Sang is Initializable, OwnableFactory, TemplateView, ERC721H
     }
 
     function safeMint(address to) internal {
-        _tokenIdCounter.increment();
         uint256 tokenId = _tokenIdCounter.current();
         _safeMint(to, tokenId);
+        _tokenIdCounter.increment();
     }
 
     /**

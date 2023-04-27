@@ -65,7 +65,7 @@ contract ChanceRoomFactory is ERC721Upgradeable, ERC721EnumerableUpgradeable, Ow
      */
     function initialize() initializer public {
         __Ownable_init();
-        __ERC721_init_unchained("ChanceRoomFactory", "CRF");
+        __ERC721_init_unchained("ChanceRoom Factory", "CRF");
         minPower = 3;
     }
 
