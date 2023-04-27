@@ -10,7 +10,7 @@ let factoryAddr = zero_address
 
   } else if(network.config.chainId == 80001) {
 
-    factoryAddr = "0xE5B7f20C2eCCe895f4F6177073f7982451b2E211"
+    factoryAddr = "0x6F9b35651544066b82CdFdd52e79D7DDf5410203"
   }
 
 

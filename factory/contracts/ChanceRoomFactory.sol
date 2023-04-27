@@ -159,12 +159,29 @@ contract ChanceRoomFactory is ERC721Upgradeable, ERC721EnumerableUpgradeable, Ow
      * - only owner of the contract is allowed to call this function.
      */
     function addImplementation(address implAddr) public onlyOwner {
-        string memory name = IERC721Metadata(implAddr).name();
+        (string memory name,) = IChanceRoom(implAddr).implInfo();
         if(implementations[name].addrs.length == 0) {
             implementations[name].index = implNames.length;
             implNames.push(name);
         }
         implementations[name].addrs.push(implAddr);
+    }
+
+    /**
+     * @dev Remove the implementation and all its versions.
+     * 
+     * 
+     * Requirements:
+     * 
+     * - only owner of the contract is allowed to call this function.
+     */
+    function removeImplementation(string memory implName) public onlyOwner {
+        Cont storage impl = implementations[implName];
+        uint256 count = impl.addrs.length;
+        for(uint256 i; i < count; i++) {
+            delete impl.addrs[i];
+        }
+        delete implNames[impl.index];
     }
 
     /**

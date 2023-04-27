@@ -11,18 +11,18 @@ let { factoryAddr } = require("./utils/cont.config.js")
 async function deployFactory() {
     const delay = ms => new Promise(res => setTimeout(res, ms));
 
-    // deploy ChanceRoomFactory
-    const ChanceRoomFactory = await ethers.getContractFactory("ChanceRoomFactory");
-    const chanceRoomFactory = await upgrades.deployProxy(ChanceRoomFactory, []);
-    await chanceRoomFactory.deployed();
-    console.log("ChanceRoomFactory : ", chanceRoomFactory.address);
+    // deploy Factory
+    const Factory = await ethers.getContractFactory("ChanceRoomFactory");
+    const factory = await upgrades.deployProxy(Factory, []);
+    await factory.deployed();
+    console.log("Factory : ", factory.address);
 
     await delay(2000)
-    await verify(chanceRoomFactory.address, [])
+    await verify(factory.address, [])
 
-    // // upgrade ChanceRoomFactory
-    // const ChanceRoomFactory = await ethers.getContractFactory("ChanceRoomFactory");
-    // const chanceRoomFactory = await upgrades.upgradeProxy(factoryAddr, ChanceRoomFactory);
-    // console.log("ChanceRoomFactory upgraded");
+    // // upgrade Factory
+    // const Factory = await ethers.getContractFactory("ChanceRoomFactory");
+    // const factory = await upgrades.upgradeProxy(factoryAddr, Factory);
+    // console.log("Factory upgraded");
 }
 deployFactory();

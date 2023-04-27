@@ -31,14 +31,12 @@ contract ChanceRoom_Timer is Initializable, OwnableFactory, TemplateView, ERC721
 
     event Trigger(address msgSender);
 
-    string constant implName = "ChanceRoom_Timer";
+    string constant implName = "Timer";
     address immutable implAddr;
 
     constructor(IFactory chanceRoomFactory)
         OwnableFactory(chanceRoomFactory)
-         initializer 
     {
-        __ERC721_init_unchained("ChanceRoom_Timer", "CRT");
         implAddr = address(this);
     }
 
@@ -86,7 +84,7 @@ contract ChanceRoom_Timer is Initializable, OwnableFactory, TemplateView, ERC721
         name = IERC721Metadata(addr).name();
     }
 
-    function implementation() public view returns (
+    function implInfo() public view returns (
         string memory name,
         address addr
     ) {

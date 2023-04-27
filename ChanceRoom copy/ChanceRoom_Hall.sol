@@ -41,14 +41,12 @@ contract ChanceRoom_Hall is IChanceRoom, Initializable, OwnableFactory, Template
 
     event Trigger(address msgSender);
 
-    string constant implName = "ChanceRoom_Hall";
+    string constant implName = "Hall";
     address immutable implAddr;
 
     constructor(IFactory chanceRoomFactory)
         OwnableFactory(chanceRoomFactory)
-         initializer 
     {
-        __ERC721_init_unchained("ChanceRoom_Hall", "CRH");
         implAddr = address(this);
     }
 
@@ -117,7 +115,7 @@ contract ChanceRoom_Hall is IChanceRoom, Initializable, OwnableFactory, Template
     /**
      * @dev Returns the name and address of the implementation of this chance room which cloned from.
      */
-    function implementation() public view returns (
+    function implInfo() public view returns (
         string memory name,
         address addr
     ) {

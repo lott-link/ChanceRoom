@@ -39,7 +39,7 @@ contract ChanceRoom_Sang is Initializable, OwnableFactory, TemplateView, ERC721H
 
     Counters.Counter private _tokenIdCounter;
 
-    string constant implName = "ChanceRoom_Sang";
+    string constant implName = "Sang";
     address immutable implAddr;
 
     event Refund(uint256 numTickets);
@@ -47,9 +47,7 @@ contract ChanceRoom_Sang is Initializable, OwnableFactory, TemplateView, ERC721H
 
     constructor(IFactory chanceRoomFactory)
         OwnableFactory(chanceRoomFactory)
-         initializer 
     {
-        __ERC721_init_unchained("ChanceRoom_Sang", "CRS");
         implAddr = address(this);
     }
 

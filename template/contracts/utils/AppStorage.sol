@@ -21,12 +21,6 @@ library AppStorage {
         // VarInt256 Int256;
     }
 
-    struct Cont {
-        string name;
-        address addr;
-        uint256 id;
-    }
-
     struct VarUint256 {
         uint256 nftId;
         uint256 maximumTicket;
