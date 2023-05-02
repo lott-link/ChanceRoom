@@ -129,7 +129,7 @@ contract ChanceRoom_Sang is Initializable, OwnableFactory, TemplateView, ERC721H
     /**
      * @dev Returns the name and address of the template which the chanceroom uses.
      */
-    function template() public view returns(
+    function tempInfo() public view returns(
         string memory name,
         address addr
     ) {

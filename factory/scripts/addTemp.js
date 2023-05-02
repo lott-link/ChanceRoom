@@ -8,10 +8,10 @@ async function deployBTicket() {
  
   // add implementation to Factory
   const Factory = await ethers.getContractAt("ChanceRoomFactory", factoryAddr)
-  await Factory.addTemplate("0x505648d960e7E3989d4E42Fe8cAc8bD47c8F3706");
+  await Factory.addTemplate("0x3D2E923504574a412a2B041DCBD7268C16d50298");
   await delay(3000)
 
-  const templates = await Factory.getTemplates();
+  const templates = await Factory.tempNames();
   console.log("templates : ", templates);
 
 }

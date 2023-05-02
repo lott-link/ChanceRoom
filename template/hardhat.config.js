@@ -24,7 +24,9 @@ module.exports = {
       chainId: 137
     },
     polygonMumbai: {
-      url: `https://matic-mumbai.chainstacklabs.com`,
+      // url: `https://matic-mumbai.chainstacklabs.com`,
+      // url: `https://rpc.ankr.com/polygon_mumbai`,
+      url: `https://polygon-mumbai.blockpi.network/v1/rpc/public`,
       accounts: [`0x${PRIVATE_KEY}`],
       chainId: 80001
     },

@@ -40,11 +40,11 @@ const { wMATIC } = require("./utils/config.js")
 
     // add implementation ChanceRoom_Sang to ChanceRoomFactory
     await chanceRoomFactory.addImplementation(chanceRoom_Sang.address)
-    console.log("implementations : ", await chanceRoomFactory.getImplementations())
+    console.log("implementations : ", await chanceRoomFactory.implNames())
 
     // add template BlackTicket to ChanceRoomFactory
     await chanceRoomFactory.addTemplate(BlackTicket.address)
-    console.log("templates : ", await chanceRoomFactory.getTemplates())
+    console.log("templates : ", await chanceRoomFactory.tempNames())
 
     // mint valuable NFT
     const NFT = await ethers.getContractFactory("NFT");

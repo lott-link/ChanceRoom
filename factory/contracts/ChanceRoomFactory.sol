@@ -327,8 +327,8 @@ contract ChanceRoomFactory is ERC721Upgradeable, ERC721EnumerableUpgradeable, Ow
 
         uint256 implVersion = chanceRoomVersion[chanceRoomAddr];
 
-        (string memory tempName, address tempAddr) = chr.template();
-        (string memory nftName, address nftAddr, uint256 nftId) = chr.nft();
+        (string memory tempName, address tempAddr) = chr.tempInfo();
+        (string memory nftName, address nftAddr, uint256 nftId) = chr.lockedNFT();
         (string memory implName, address implAddr) = chr.implInfo();
 
         return string.concat('data:image/svg+xml;base64,', Base64.encode(abi.encodePacked(

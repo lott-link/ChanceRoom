@@ -23,7 +23,7 @@ async function deployFactory() {
     // const factory = await upgrades.upgradeProxy(factoryAddr, Factory);
     // console.log("Factory upgraded");
 
-    await delay(2000)
+    await delay(10000)
     await verify(factory.address, [])
 }
 deployFactory();

@@ -341,6 +341,21 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
         emit Trigger(msg.sender);
     }
 
+    /**
+     * @dev Allows the contract owner to refund all purchased tickets if certain conditions are met.
+     * The function checks if the chance room has not triggered before, if the refund time has been reached,
+     * and if all tickets have not been sold out. If the conditions are met, the function refunds all ticket buyers
+     * by transferring the ticket price back to their wallets and transfers the NFT to the contract owner.
+     * Finally, the refunded flag is set to true and the Refund event is emitted.
+     * 
+     * Requirements:
+     * 
+     * - The chance room has not triggered before.
+     * - The refund time has been reached.
+     * - All tickets have not been sold out.
+     * 
+     * Emits a {Refund} event indicating the number of refunded tickets.
+     */
     function refund() public {
         uint256 numTickets = totalSupply();
         require(

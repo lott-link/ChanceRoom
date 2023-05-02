@@ -10,7 +10,7 @@ async function deployBTicket() {
   const BlackTicket = await Template_BlackTicket.deploy();
   await BlackTicket.deployed();
   console.log("Template_BlackTicket addr : ", BlackTicket.address);
-  await delay(3000)
+  await delay(10000)
 
   await verify(BlackTicket.address, [])
 
