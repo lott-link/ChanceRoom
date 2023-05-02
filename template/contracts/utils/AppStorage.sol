@@ -7,10 +7,10 @@ library AppStorage {
 
     bytes32 constant APP_STORAGE_POSITION = keccak256("APP_STORAGE_POSITION");
 
-    function layout() internal pure returns (Layout storage ds) {
+    function layout() internal pure returns (Layout storage l) {
         bytes32 position = APP_STORAGE_POSITION;
         assembly {
-            ds.slot := position
+            l.slot := position
         }
     }
 
