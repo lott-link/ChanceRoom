@@ -59,25 +59,25 @@ contract ChanceRoom_Sang is Initializable, OwnableFactory, TemplateView, ERC721H
      * -only creator of the chance room can call this function
      */
     function initialize(
-        string memory tempName,
-        address _nftAddr,
-        uint256 _nftId,
-        uint256 _maximumTicket,
-        uint256 _ticketPrice,
-        uint256 holdingTime
+        string memory _tempName_,
+        address _nftAddr_,
+        uint256 _nftId_,
+        uint256 _maximumTicket_,
+        uint256 _ticketPrice_,
+        uint256 _holdingTime_
     ) initializer onlyOwner public {
         __ERC721_init_unchained(
-            string.concat("ChanceRoom_Sang on ", IERC721Metadata(_nftAddr).name(), " : ", _nftId.toString()), 
+            string.concat("ChanceRoom_Sang on ", IERC721Metadata(_nftAddr_).name(), " : ", _nftId_.toString()), 
             "CRS"
         );
-        (address tempAddr,) = ChanceRoomFactory.tempLatestVersion(tempName);
+        (address tempAddr,) = ChanceRoomFactory.tempLatestVersion(_tempName_);
         AppStorage.layout().Address.tempAddr = tempAddr;
-        AppStorage.layout().Address.nftAddr = _nftAddr;
-        AppStorage.layout().Uint256.nftId = _nftId;
-        AppStorage.layout().Uint256.maximumTicket = _maximumTicket;
-        AppStorage.layout().Uint256.ticketPrice = _ticketPrice;
-        AppStorage.layout().Uint256.deadLine = block.timestamp + holdingTime;
-        IERC721(_nftAddr).transferFrom(msg.sender, address(this), _nftId);
+        AppStorage.layout().Address.nftAddr = _nftAddr_;
+        AppStorage.layout().Uint256.nftId = _nftId_;
+        AppStorage.layout().Uint256.maximumTicket = _maximumTicket_;
+        AppStorage.layout().Uint256.ticketPrice = _ticketPrice_;
+        AppStorage.layout().Uint256.deadLine = block.timestamp + _holdingTime_;
+        IERC721(_nftAddr_).transferFrom(msg.sender, address(this), _nftId_);
         safeMint(address(this));
     }  
 

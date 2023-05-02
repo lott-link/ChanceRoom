@@ -5,12 +5,11 @@ import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 interface IChanceRoom is IERC165 {
 
-    // function name() external pure returns (string memory);
     function template() external view returns(
         string memory name,
         address addr
     );
-    function nft() external view returns(
+    function lockedNFT() external view returns(
         string memory name,
         address addr, 
         uint256 id

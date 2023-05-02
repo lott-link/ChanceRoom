@@ -17,12 +17,13 @@ async function deployFactory() {
     await factory.deployed();
     console.log("Factory : ", factory.address);
 
-    await delay(2000)
-    await verify(factory.address, [])
 
     // // upgrade Factory
     // const Factory = await ethers.getContractFactory("ChanceRoomFactory");
     // const factory = await upgrades.upgradeProxy(factoryAddr, Factory);
     // console.log("Factory upgraded");
+
+    await delay(2000)
+    await verify(factory.address, [])
 }
 deployFactory();
