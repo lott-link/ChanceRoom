@@ -23,10 +23,10 @@ library AppStorage {
 
     struct VarUint256 {
         uint256 initTime;
+        uint256 deadLine;
         uint256 nftId;
         uint256 maximumTicket;
         uint256 soldTickets;
-        uint256 deadLine;
         uint256 ticketPrice;
         uint256 winnerId;
     }

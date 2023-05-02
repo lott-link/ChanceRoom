@@ -182,8 +182,6 @@ contract ChanceRoomFactory is ERC721Upgradeable, ERC721EnumerableUpgradeable, Ow
         return _implementations[implName].addrs;
     }
 
-
-
     /**
      * @notice Adds a new implementation address to the verified implementations list. If there is already an implementation with the same name,
      * the new address will be added as a new version of the existing implementation.
@@ -312,7 +310,7 @@ contract ChanceRoomFactory is ERC721Upgradeable, ERC721EnumerableUpgradeable, Ow
     /**
      * @dev Generates the image for the given `chanceRoomAddr`, `status1` and `status2`.
      *
-     * @param chanceRoomAddr The address of the ChanceRoom instance.
+     * @param chanceRoomAddr The address of the ChanceRoom.
      * @param status1 The first status string.
      * @param status2 The second status string.
      * @return A string representing the generated image.
@@ -329,12 +327,12 @@ contract ChanceRoomFactory is ERC721Upgradeable, ERC721EnumerableUpgradeable, Ow
 
         (string memory tempName, address tempAddr) = chr.tempInfo();
         (string memory nftName, address nftAddr, uint256 nftId) = chr.lockedNFT();
-        (string memory implName, address implAddr) = chr.implInfo();
+        (string memory implName,) = chr.implInfo();
 
         return string.concat('data:image/svg+xml;base64,', Base64.encode(abi.encodePacked(
             _template({
                 implementation : implName,
-                implAddr : implAddr.toHexString(),
+                chanceRoomAddr : chanceRoomAddr.toHexString(),
                 implVersion : string.concat("V", implVersion.toString()),
                 template : tempName,
                 tempAddr : tempAddr.toHexString(),
@@ -350,7 +348,7 @@ contract ChanceRoomFactory is ERC721Upgradeable, ERC721EnumerableUpgradeable, Ow
      * @dev Generates the SVG template string with the given parameters.
      *
      * @param implementation The implementation name.
-     * @param implAddr The implementation address.
+     * @param chanceRoomAddr The implementation address.
      * @param implVersion The implementation version.
      * @param template The template name.
      * @param tempAddr The template address.
@@ -362,7 +360,7 @@ contract ChanceRoomFactory is ERC721Upgradeable, ERC721EnumerableUpgradeable, Ow
      */
     function _template(
         string memory implementation,
-        string memory implAddr,
+        string memory chanceRoomAddr,
         string memory implVersion,
         string memory template,
         string memory tempAddr,
@@ -391,7 +389,7 @@ contract ChanceRoomFactory is ERC721Upgradeable, ERC721EnumerableUpgradeable, Ow
             '</tspan></text><text clip-path="url(#TextBounds_10)" fill="#11055c" font-family="Arial-BoldMT" font-size="15" opacity="1" stroke="none" text-anchor="start" transform="matrix(1 0 0 1 44.6703 649.476)" x="0" y="0"><tspan x="0" y="14">',
             implementation,
             '</tspan></text><text clip-path="url(#TextBounds_11)" fill="#11055c" font-family="ArialMT" font-size="15" opacity="1" stroke="none" text-anchor="middle" transform="matrix(1 0 0 1 47.189 673.213)" x="0" y="0"><tspan x="205.148" y="14">Addr: ',
-            implAddr,
+            chanceRoomAddr,
             '</tspan></text></g></svg>'
         );
     }

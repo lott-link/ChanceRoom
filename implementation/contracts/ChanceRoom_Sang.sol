@@ -63,15 +63,10 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
      * @dev Initializes a new chance room with specified parameters.
      * 
      * @param _tempName_ The name of the chance room template used to create this chance room.
-     * 
      * @param _nftAddr_ The address of the NFT locked by the owner on this chance room.
-     * 
      * @param _nftId_ The ID of the NFT locked by the owner on this chance room.
-     * 
      * @param _maximumTicket_ The maximum number of tickets that can be purchased in this chance room.
-     * 
      * @param _ticketPrice_ The price of each ticket in this chance room.
-     * 
      * @param _holdingTime_ The holding time in seconds after which the chance room is closed for ticket purchase.
      * 
      * Requirements:
@@ -92,13 +87,13 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
             "CRS"
         );
         (address tempAddr,) = ChanceRoomFactory.tempLatestVersion(_tempName_);
+        AppStorage.layout().Uint256.initTime = block.timestamp;
+        AppStorage.layout().Uint256.deadLine = block.timestamp + _holdingTime_;
         AppStorage.layout().Address.tempAddr = tempAddr;
         AppStorage.layout().Address.nftAddr = _nftAddr_;
-        AppStorage.layout().Uint256.initTime = block.timestamp;
         AppStorage.layout().Uint256.nftId = _nftId_;
         AppStorage.layout().Uint256.maximumTicket = _maximumTicket_;
         AppStorage.layout().Uint256.ticketPrice = _ticketPrice_;
-        AppStorage.layout().Uint256.deadLine = block.timestamp + _holdingTime_;
         IERC721(_nftAddr_).transferFrom(msg.sender, address(this), _nftId_);
         safeMint(address(this));
     }
