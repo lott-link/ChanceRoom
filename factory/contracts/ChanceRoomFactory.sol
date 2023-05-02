@@ -297,7 +297,7 @@ contract ChanceRoomFactory is ERC721Upgradeable, ERC721EnumerableUpgradeable, Ow
         address chanceRoomAddr = address(uint160(tokenId));
         IChanceRoom chr = IChanceRoom(chanceRoomAddr);
 
-        (string memory _name, string memory _rule) = chr.info();
+        (string memory _name, string memory _rule,) = chr.info();
         (string memory status1, string memory status2) = chr.status();
 
         return string.concat('data:application/json;base64,', Base64.encode(abi.encodePacked(

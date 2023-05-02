@@ -102,7 +102,7 @@ contract ChanceRoom_Hall is IChanceRoom, Initializable, OwnableFactory, Template
     /**
      * @dev Returns the name, address and the id of the valuable NFT.
      */
-    function nft() public view returns(
+    function lockedNFT() public view returns(
         string memory name,
         address addr, 
         uint256 id
@@ -140,7 +140,8 @@ contract ChanceRoom_Hall is IChanceRoom, Initializable, OwnableFactory, Template
      */
     function info() public view returns(
         string memory _name,
-        string memory _rule
+        string memory _rule,
+        uint256 _initTime
     ) {
         _name = name();
         _rule = "Hall LOTTERY: limited seat lottery";

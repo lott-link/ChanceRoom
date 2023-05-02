@@ -28,6 +28,7 @@ library AppStorage {
     }
 
     struct VarUint256 {
+        uint256 initTime;
         uint256 nftId;
         uint256 maximumTicket;
         uint256 soldTickets;

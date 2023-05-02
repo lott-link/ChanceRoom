@@ -74,7 +74,7 @@ contract ChanceRoom_Timer is Initializable, OwnableFactory, TemplateView, ERC721
         }
     }
 
-    function nft() public view returns(
+    function lockedNFT() public view returns(
         string memory name,
         address addr, 
         uint256 id
@@ -103,7 +103,8 @@ contract ChanceRoom_Timer is Initializable, OwnableFactory, TemplateView, ERC721
 
     function info() public view returns(
         string memory _name,
-        string memory _rule
+        string memory _rule,
+        uint256 _initTime
     ) {
         _name = name();
         _rule = "TIMER LOTTERY: tick tock until the trigger pulled";

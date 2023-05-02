@@ -103,7 +103,7 @@ contract ChanceRoom_Sang is Initializable, OwnableFactory, TemplateView, ERC721H
     /**
      * @dev Returns the name, address and the id of the valuable NFT.
      */
-    function nft() public view returns(
+    function lockedNFT() public view returns(
         string memory name,
         address addr, 
         uint256 id
@@ -145,7 +145,8 @@ contract ChanceRoom_Sang is Initializable, OwnableFactory, TemplateView, ERC721H
      */
     function info() public view returns(
         string memory _name,
-        string memory _rule
+        string memory _rule,
+        uint256 _initTime
     ) {
         _name = name();
         _rule = "SANG LOTTERY: A fixed and limited number of tickets will be sold to draw an NFT. Organizer will set the number of tickets, their price, and the deadline of the Sang Lottery at the beginning when She/He locks the price NFT in deployed SANG LOTTERY contract. If all the tickets have been sold before the deadline: Organizer can draw the winner, The NFT, and the organizer's money will transfer automatically. * before the deadline just the organizer can call the draw function but after that time everyone can call the draw function. If all the tickets are not sold before the deadline. Everyone can withdraw their money from the contracts and Organizer can release their NFT if all the tickets burned. Powered By Lott.Link";
