@@ -296,7 +296,7 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
      */
     function purchaseTicket() public payable {
         require(AppStorage.layout().Uint256.winnerId == 0, "ChanceRoom expired");
-        require(totalSupply() < AppStorage.layout().Uint256.maximumTicket, "tickets soldOut");
+        require(totalSupply() <= AppStorage.layout().Uint256.maximumTicket, "tickets soldOut");
         require(msg.value >= AppStorage.layout().Uint256.ticketPrice, "insufficient fee");
         require(
             block.timestamp < AppStorage.layout().Uint256.deadLine,
@@ -315,7 +315,7 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
      */
     function trigger() public {
         require(
-            totalSupply() == AppStorage.layout().Uint256.maximumTicket, 
+            totalSupply() > AppStorage.layout().Uint256.maximumTicket, 
             "tickets are not full sold"
         );
         require(
@@ -362,7 +362,7 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
             "refund time has not reached"
         );
         require(
-            numTickets < AppStorage.layout().Uint256.maximumTicket, 
+            numTickets <= AppStorage.layout().Uint256.maximumTicket, 
             "tickets has sold out"
         );
 

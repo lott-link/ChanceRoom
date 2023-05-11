@@ -8,7 +8,7 @@ async function deploySang() {
  
   // add implementation to Factory
   const Factory = await ethers.getContractAt("ChanceRoomFactory", factoryAddr)
-  await Factory.addImplementation("0xcd60550caE995a4a15d7d05F1E8a75B2Ff083b35");
+  await Factory.addImplementation("0x17790F9472eCB89F0E9F9dBd3490C2d339894733");
   await delay(3000)
 
   const implementations = await Factory.implNames();

@@ -16,8 +16,8 @@ module.exports = {
   },
   networks: {
     polygon: {
-      // url: `https://polygon-rpc.com/`,
-      url: `https://rpc-mainnet.maticvigil.com`,
+      url: `https://polygon-rpc.com/`,
+      // url: `https://rpc-mainnet.maticvigil.com`,
       // url: `https://rpc.ankr.com/polygon/`,
       accounts: [`0x${PRIVATE_KEY}`],
       // gasPrice: 500 * 10 ** 9,
