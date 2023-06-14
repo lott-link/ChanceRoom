@@ -5,8 +5,8 @@ import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
 
 abstract contract VRFConsumer is VRFConsumerBase {
     
-    bytes32 internal keyHash;
-    uint256 internal linkFee;
+    bytes32 internal immutable keyHash;
+    uint256 internal immutable linkFee;
 
     event VRFResponse(bytes32 requestId, uint256 randomness);
 

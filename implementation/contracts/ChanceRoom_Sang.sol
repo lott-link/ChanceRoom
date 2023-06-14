@@ -45,7 +45,7 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
     address immutable implAddr;
 
     event Refund(uint256 numTickets);
-    event Trigger(address msgSender);
+    event Trigger(address msgSender, bytes32 requestId);
 
     /**
      * @dev Constructor function for the ChanceRoom contract.
@@ -324,16 +324,17 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
         );
 
         AppStorage.layout().Bool.triggered = true;
+        bytes32 requestId;
         if(chainId() == 137) {
             if(LINK.balanceOf(address(this)) < linkFee){
                 swap_MATIC_LINK677(linkFee, 10 ** 17);
             }
-            _getRandomNumber();
+            requestId = _getRandomNumber();
         } else {
             _select(block.timestamp);
         }
 
-        emit Trigger(msg.sender);
+        emit Trigger(msg.sender, requestId);
     }
 
     /**
