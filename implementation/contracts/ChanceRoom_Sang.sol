@@ -14,7 +14,6 @@ pragma solidity ^0.8.9;
  */
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
@@ -35,7 +34,7 @@ import "./utils/OwnableFactory.sol";
  * @notice After the selling period ends, the chanceroom triggers the Chainlink RNC to randomly select a winning ticket.
  * @dev This contract is implemented using the Lott-link API and Chainlink RNC to ensure a fair and secure chanceroom.
  */
-contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, TemplateView, ERC721Holder, ERC721Upgradeable, ERC721EnumerableUpgradeable, VRFConsumer, Swapper {
+contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, TemplateView, ERC721Holder, ERC721Upgradeable, VRFConsumer, Swapper {
     using Counters for Counters.Counter;
     using Strings for uint256;
 
@@ -44,8 +43,11 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
     string constant implName = "Sang";
     address immutable implAddr;
 
+    bytes32 chainlinkRequestId;
+    uint256 chainlinkRandomness;
+
     event Refund(uint256 numTickets);
-    event Trigger(address msgSender, bytes32 requestId);
+    event Trigger(address msgSender);
 
     /**
      * @dev Constructor function for the ChanceRoom contract.
@@ -296,7 +298,7 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
      */
     function purchaseTicket() public payable {
         require(AppStorage.layout().Uint256.winnerId == 0, "ChanceRoom expired");
-        require(totalSupply() <= AppStorage.layout().Uint256.maximumTicket, "tickets soldOut");
+        require(AppStorage.layout().Uint256.soldTickets < AppStorage.layout().Uint256.maximumTicket, "tickets soldOut");
         require(msg.value >= AppStorage.layout().Uint256.ticketPrice, "insufficient fee");
         require(
             block.timestamp < AppStorage.layout().Uint256.deadLine,
@@ -315,7 +317,7 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
      */
     function trigger() public {
         require(
-            totalSupply() > AppStorage.layout().Uint256.maximumTicket, 
+            AppStorage.layout().Uint256.soldTickets == AppStorage.layout().Uint256.maximumTicket, 
             "tickets are not full sold"
         );
         require(
@@ -324,17 +326,17 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
         );
 
         AppStorage.layout().Bool.triggered = true;
-        bytes32 requestId;
         if(chainId() == 137) {
             if(LINK.balanceOf(address(this)) < linkFee){
                 swap_MATIC_LINK677(linkFee, 10 ** 17);
             }
-            requestId = _getRandomNumber();
+            chainlinkRequestId = _getRandomNumber();
+            
         } else {
             _select(block.timestamp);
         }
 
-        emit Trigger(msg.sender, requestId);
+        emit Trigger(msg.sender);
     }
 
     /**
@@ -353,7 +355,7 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
      * Emits a {Refund} event indicating the number of refunded tickets.
      */
     function refund() public {
-        uint256 numTickets = totalSupply();
+        uint256 numTickets = AppStorage.layout().Uint256.soldTickets;
         require(
             AppStorage.layout().Bool.triggered == false,
             "This chance room has triggered before"
@@ -369,7 +371,7 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
 
         address payable user;
         uint256 _ticketPrice = AppStorage.layout().Uint256.ticketPrice;
-        for(uint256 i = 1; i < numTickets; i++) {
+        for(uint256 i = 1; i <= numTickets; i++) {
             user = payable(ownerOf(i));
             user.transfer(_ticketPrice);
         }
@@ -390,31 +392,27 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
      * Only chainlink RNC can call this function
      */
     function _select(uint256 randomness) internal override {
-
-        uint256 denom = totalSupply();
-
-        uint256 randIndex = randomness % denom + 1;
-
-        address winner = ownerOf(randIndex);
-        AppStorage.layout().Uint256.winnerId = randIndex;
+        (uint256 winnerId, address winner) = findWinner(
+                randomness, AppStorage.layout().Uint256.soldTickets
+            );
+        chainlinkRandomness = randomness;
+        AppStorage.layout().Uint256.winnerId = winnerId;
         IERC721(AppStorage.layout().Address.nftAddr).safeTransferFrom(address(this), winner, AppStorage.layout().Uint256.nftId);
         payable(owner()).transfer(address(this).balance);
+    }
+
+    function findWinner(uint256 randomness, uint256 numTickets) public view returns(uint256 winnerId, address winner) {
+        winnerId = randomness % numTickets + 1;
+        winner = ownerOf(winnerId);
     }
 
 
     // The following functions are overrides required by Solidity.
 
-    function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize)
-        internal
-        override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
-    {
-        super._beforeTokenTransfer(from, to, tokenId, batchSize);
-    }
-
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(ERC721EnumerableUpgradeable, ERC721Upgradeable, IERC165)
+        override(ERC721Upgradeable, IERC165)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
