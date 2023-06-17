@@ -1,4 +1,4 @@
-async function deployGas(contractName) {
+async function deployFee(contractName) {
 
     const Contract = await hre.ethers.getContractFactory(contractName);
     const deploymentData = Contract.getDeployTransaction("0x0000000000000000000000000000000000000000").data;
@@ -18,6 +18,6 @@ async function deployGas(contractName) {
  
 
 module.exports = {
-  deployGas,
+  deployFee,
 }
   
