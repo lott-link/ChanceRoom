@@ -4,6 +4,7 @@ pragma abicoder v2;
 
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 import '@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol';
+import '@openzeppelin/contracts/utils/Strings.sol';
 
 interface IwERC20 {
     function deposit() external payable;
@@ -17,6 +18,7 @@ interface IpegSwap {
 
 // on polygon matic mainnet
 contract Swapper {
+    using Strings for uint256;
 
     ISwapRouter internal constant uniSwap = ISwapRouter(0xE592427A0AEce92De3Edee1F18E0157C05861564);
     IpegSwap internal constant pegSwap = IpegSwap(0xAA1DC356dc4B18f30C347798FD5379F3D77ABC5b);
@@ -37,6 +39,11 @@ contract Swapper {
     }
 
     function swap_MATIC_LINK677(uint256 amountOut, uint256 amountInMaximum) internal {
+
+        require(
+            address(this).balance >= amountInMaximum, 
+            string.concat("insufficient balance to swap; minimum needed amount : ", amountInMaximum.toString())
+        );
 
         swap_MATIC_LINK20(amountOut, amountInMaximum);
 
@@ -64,6 +71,7 @@ contract Swapper {
             });
 
         amountOut = uniSwap.exactInputSingle(params);
+        wm.withdraw(wm.balanceOf(address(this)));
     }
 
     function swap_MATIC_LINK20(uint256 amountOut, uint256 amountInMaximum) internal returns(uint256 amountIn) {

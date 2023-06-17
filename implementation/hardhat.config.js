@@ -1,6 +1,7 @@
 require("@nomicfoundation/hardhat-toolbox");
+require("hardhat-gas-reporter");
 
-const { PRIVATE_KEY, SMARTCHAIN_API_KEY, MUMBAI_API_KEY, POLYGONSCAN_API_KEY } = require('./secret.json');
+const { PRIVATE_KEY, SMARTCHAIN_API_KEY, MUMBAI_API_KEY, POLYGONSCAN_API_KEY, COINMARKETCAP_API_KEY } = require('./secret.json');
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
@@ -30,6 +31,15 @@ module.exports = {
       accounts: [`0x${PRIVATE_KEY}`],
       chainId: 80001
     },
+  },
+  gasReporter: {
+    enabled: true,
+    currency: 'USD',
+    outputFile: 'gas-reporter-matic.txt',
+    noColors: true,
+    coinmarketcap: `${COINMARKETCAP_API_KEY}`,
+    gasPrice: 21,
+    token: 'MATIC'
   },
   etherscan: {
     apiKey: {
