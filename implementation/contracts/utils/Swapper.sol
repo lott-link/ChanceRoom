@@ -71,7 +71,6 @@ contract Swapper {
             });
 
         amountOut = uniSwap.exactInputSingle(params);
-        wm.withdraw(wm.balanceOf(address(this)));
     }
 
     function swap_MATIC_LINK20(uint256 amountOut, uint256 amountInMaximum) internal returns(uint256 amountIn) {
@@ -93,6 +92,7 @@ contract Swapper {
             });
 
         amountIn = uniSwap.exactOutputSingle(params);
+        wm.withdraw(wm.balanceOf(address(this)));
     }
 
     function swap_LINK20_677(uint256 amount) internal {

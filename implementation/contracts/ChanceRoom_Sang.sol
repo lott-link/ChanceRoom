@@ -406,6 +406,12 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
         winner = ownerOf(winnerId);
     }
 
+    function findWinner() public view returns(uint256 winnerId, address winner) {
+        if(chainlinkRandomness != 0) {
+            return findWinner(chainlinkRandomness, AppStorage.layout().Uint256.soldTickets);
+        }
+    }
+
 
     // The following functions are overrides required by Solidity.
 

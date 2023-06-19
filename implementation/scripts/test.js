@@ -25,35 +25,4 @@ describe('sang test', async function () {
     })
     
     
-    // it('purchase 3 tickets by user2', async () => {
-    //     assert.equal((await rw.userTickets(user2.address)).length, 0)
-
-    //     await rw.connect(user2).purchaseTicket({value : (10 ** 16).toString()});
-    //     await rw.connect(user2).purchaseTicket({value : (10 ** 16).toString()});
-    //     await rw.connect(user2).purchaseTicket({value : (10 ** 16).toString()});
-
-    //     assert.equal(await rw.balance(), (4 * 10 ** 16).toString())
-    //     assert.equal(await rw.ticketCounter(), 4)
-    //     assert.equal((await rw.userTickets(user2.address)).length, 3)
-    // })
-    
-    // it('purchase 2 tickets by user3', async () => {
-    //     await rw.connect(user3).purchaseTicket({value : (10 ** 16).toString()});
-    //     await rw.connect(user3).purchaseTicket({value : (10 ** 16).toString()});
-    //     await rw.connect(user3).purchaseTicket({value : (10 ** 16).toString()});
-    // })
-    
-    // it('roll dice', async () => {
-    //     await expect(
-    //         rw.rollDice()
-    //     ).to.be.revertedWith("RandomWinner: The deadline has not yet arrived.")
-
-    //     await time.increase(duration)
-
-    //     await rw.rollDice()
-
-    //     assert.equal(await rw.balance(), 0)
-
-    //     console.log(await rw.winner())
-    // })
 })
