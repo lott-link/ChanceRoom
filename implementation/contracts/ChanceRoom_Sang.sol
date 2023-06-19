@@ -365,7 +365,7 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
             "refund time has not reached"
         );
         require(
-            numTickets <= AppStorage.layout().Uint256.maximumTicket, 
+            numTickets < AppStorage.layout().Uint256.maximumTicket, 
             "tickets has sold out"
         );
 
@@ -417,4 +417,6 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
     {
         return super.supportsInterface(interfaceId);
     }
+
+    receive() external payable {}
 }
