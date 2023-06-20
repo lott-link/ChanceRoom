@@ -33,13 +33,13 @@ import "../interfaces/IChanceRoom.sol";
 /**
  * @dev ChanceRoom_Hall is a limited ticket chanceroom powered by lott-link
  * there is a valuable NFT locked by owner on this chanceroom and users can buy tickets in certain price
- * after the selling ended, the chanceroom triggers the chainlink RNc and by random one of tickets wins 
+ * after the selling ended, the chanceroom rollups the chainlink RNc and by random one of tickets wins 
  * the NFT
  */
 contract ChanceRoom_Hall is IChanceRoom, Initializable, OwnableFactory, TemplateView, ERC721Holder, ERC721Upgradeable, ERC721EnumerableUpgradeable, VRFConsumer, Swapper {
     using Strings for uint256;
 
-    event Trigger(address msgSender);
+    event Rollup(address msgSender);
 
     string constant implName = "Hall";
     address immutable implAddr;
@@ -187,7 +187,7 @@ contract ChanceRoom_Hall is IChanceRoom, Initializable, OwnableFactory, Template
             }
         } else {
             s1 = "soldout";
-            if(!app.Bool.triggered) {
+            if(!app.Bool.rolledup) {
                 s2 = "Waiting for roll up";
             } else if(app.Uint256.winnerId == 0) {
                 s2 = "Waiting for ChainLink";
@@ -268,19 +268,19 @@ contract ChanceRoom_Hall is IChanceRoom, Initializable, OwnableFactory, Template
     }
 
     /**
-     * @dev Triggers the random number consumer to generate a random.
+     * @dev Rollups the random number consumer to generate a random.
      * 
      * Requirements:
      * 
      * - tickets must be sold out.
      */
-    function trigger() public {
+    function rollup() public {
         require(
             totalSupply() == AppStorage.layout().Uint256.maximumTicket, 
             "tickets are not full sold"
         );
 
-        AppStorage.layout().Bool.triggered = true;
+        AppStorage.layout().Bool.rolledup = true;
 
         if(chainId() == 137) {
             _getRandomNumber();
@@ -288,7 +288,7 @@ contract ChanceRoom_Hall is IChanceRoom, Initializable, OwnableFactory, Template
             _select(block.timestamp);
         }
 
-        emit Trigger(msg.sender);
+        emit Rollup(msg.sender);
     }
 
     /**

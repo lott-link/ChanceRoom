@@ -30,7 +30,7 @@ import "../utils/OwnableFactory.sol";
 /**
  * @dev ChanceRoom_Sang is a limited ticket and time chanceroom powered by lott-link
  * there is a valuable NFT locked by owner on this chanceroom and users can buy tickets in certain price
- * after the selling ended, the chanceroom triggers the chainlink RNC and by random one of tickets wins 
+ * after the selling ended, the chanceroom rollups the chainlink RNC and by random one of tickets wins 
  * the NFT
  */
 contract ChanceRoom_Sang is Initializable, OwnableFactory, TemplateView, ERC721Holder, ERC721Upgradeable, ERC721EnumerableUpgradeable, VRFConsumer, Swapper {
@@ -43,7 +43,7 @@ contract ChanceRoom_Sang is Initializable, OwnableFactory, TemplateView, ERC721H
     address immutable implAddr;
 
     event Refund(uint256 numTickets);
-    event Trigger(address msgSender);
+    event Rollup(address msgSender);
 
     constructor(IFactory chanceRoomFactory)
         OwnableFactory(chanceRoomFactory)
@@ -189,7 +189,7 @@ contract ChanceRoom_Sang is Initializable, OwnableFactory, TemplateView, ERC721H
                 }
             } else {
                 s1 = "soldout";
-                if(!app.Bool.triggered) {
+                if(!app.Bool.rolledup) {
                     s2 = "Waiting for roll up";
                 } else if(app.Uint256.winnerId == 0) {
                     s2 = "Waiting for ChainLink";
@@ -273,13 +273,13 @@ contract ChanceRoom_Sang is Initializable, OwnableFactory, TemplateView, ERC721H
     }
 
     /**
-     * @dev Triggers the random number consumer to generate a random.
+     * @dev Rollups the random number consumer to generate a random.
      * 
      * Requirements:
      * 
      * - tickets must be sold out.
      */
-    function trigger() public {
+    function rollup() public {
         require(
             totalSupply() == AppStorage.layout().Uint256.maximumTicket, 
             "tickets are not full sold"
@@ -289,7 +289,7 @@ contract ChanceRoom_Sang is Initializable, OwnableFactory, TemplateView, ERC721H
             "This chance room has refunded"
         );
 
-        AppStorage.layout().Bool.triggered = true;
+        AppStorage.layout().Bool.rolledup = true;
         if(chainId() == 137) {
             if(LINK.balanceOf(address(this)) < linkFee){
                 swap_MATIC_LINK677(linkFee, 10 ** 17);
@@ -299,14 +299,14 @@ contract ChanceRoom_Sang is Initializable, OwnableFactory, TemplateView, ERC721H
             _select(block.timestamp);
         }
 
-        emit Trigger(msg.sender);
+        emit Rollup(msg.sender);
     }
 
     function refund() public {
         uint256 numTickets = totalSupply();
         require(
-            AppStorage.layout().Bool.triggered == false,
-            "This chance room has triggered before"
+            AppStorage.layout().Bool.rolledup == false,
+            "This chance room has rolledup before"
         );
         require(
             block.timestamp >= AppStorage.layout().Uint256.deadLine,

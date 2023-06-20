@@ -43,7 +43,7 @@ library AppStorage {
     }
 
     struct VarBool {
-        bool triggered;
+        bool rolledup;
         bool refunded;
     }
 

@@ -7,16 +7,16 @@ let { factoryAddr } = require("../../factory/scripts/utils/cont.config.js")
 async function deploySang() {
   const delay = ms => new Promise(res => setTimeout(res, ms));
 
-  // await deployFee("ChanceRoom_Sang")
+  await deployFee("ChanceRoom_Sang", factoryAddr)
  
-  // // deploy implementation
-  // const Sang = await ethers.getContractFactory("ChanceRoom_Sang");
-  // const sang = await Sang.deploy(factoryAddr);
-  // await sang.deployed();
-  // console.log("Sang addr : ", sang.address);
-  // await delay(20000)
+  // deploy implementation
+  const Sang = await ethers.getContractFactory("ChanceRoom_Sang");
+  const sang = await Sang.deploy(factoryAddr);
+  await sang.deployed();
+  console.log("Sang addr : ", sang.address);
+  await delay(20000)
 
-  await verify("0xB02C0Ba0A628ca40F8658f72fF8C9d69B76C3a6B", [factoryAddr])
+  await verify(sang.address, [factoryAddr])
 
 }
 deploySang();

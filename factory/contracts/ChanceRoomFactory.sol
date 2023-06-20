@@ -41,7 +41,7 @@ import "./utils/Power.sol";
  * or greater than the minimum required by the owner.
  * @dev The ChanceRooms allow users to pay a price set by the owner to purchase tickets to join the chanceRoom. The 
  * tickets are numbered from 0 to the total number of users.
- * @dev When the chanceRoom is triggered, a function calls the chain-link VRF to request a random number, and the 
+ * @dev When the chanceRoom is rolledup, a function calls the chain-link VRF to request a random number, and the 
  * winner is selected based on that number. The valuable NFT held by the chanceRoom is transferred to the owner of 
  * the winning ticket, and the locked funds are transferred to the owner and creator of the chanceRoom.
  */

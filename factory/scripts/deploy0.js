@@ -118,8 +118,8 @@ const { wMATIC } = require("./utils/config.js")
     // // await time.increase(12000 * hour)
 
 
-    // // // triggerrrrrrrrrr
-    // // // await clonedChanceRoom.trigger(); console.log("chance room triggered");
+    // // // rolluprrrrrrrrr
+    // // // await clonedChanceRoom.rollup(); console.log("chance room rolledup");
     // // await clonedChanceRoom.refund(); console.log("chance room refunded");
 
     // console.log("token 2 URI : ", await clonedChanceRoom.tokenURI(1))

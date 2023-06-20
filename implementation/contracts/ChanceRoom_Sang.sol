@@ -31,7 +31,7 @@ import "./utils/OwnableFactory.sol";
  * @title ChanceRoom_Sang
  * @notice A limited ticket and time chanceroom powered by Lott-link.
  * @notice Users can buy tickets at a certain price to enter the chanceroom for a chance to win a valuable NFT locked by the owner.
- * @notice After the selling period ends, the chanceroom triggers the Chainlink RNC to randomly select a winning ticket.
+ * @notice After the selling period ends, the chanceroom rollups the Chainlink RNC to randomly select a winning ticket.
  * @dev This contract is implemented using the Lott-link API and Chainlink RNC to ensure a fair and secure chanceroom.
  */
 contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, TemplateView, ERC721Holder, ERC721Upgradeable, VRFConsumer, Swapper {
@@ -47,7 +47,7 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
     uint256 public chainlinkRandomness;
 
     event Refund(uint256 numTickets);
-    event Trigger(address msgSender);
+    event Rollup(address msgSender);
 
     /**
      * @dev Constructor function for the ChanceRoom contract.
@@ -178,7 +178,7 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
         uint256 _initTime
     ) {
         _name = name();
-        _rule = "The ChanceRoom_Sang contract serves as a smart contract created for the purpose of facilitating a lottery-like game called Sang Lottery. This contract aims to provide an accessible platform where individuals can participate by purchasing tickets for a chance to win a valuable non-fungible token (NFT). In the Sang Lottery, users are able to acquire tickets through the contract by utilizing the `purchaseTicket` function and submitting the required ticket price. Once the ticket purchase is confirmed, the corresponding tickets are transferred to the buyer's wallet. Essentially, the contract manages the distribution of tickets and keeps a record of the number of tickets sold. Additionally, it sets a designated deadline for ticket purchases. If all tickets are sold prior to the deadline, the organizer can initiate the lottery drawing process. During the lottery drawing, the contract generates a random number, which can be obtained either through a Chainlink oracle, depending on the network. The winner of the lottery is determined based on this random number and subsequently receives the coveted NFT prize. In the event that all tickets are not sold before the specified deadline, participants have the option to refund their purchased tickets. The contract ensures a secure and reliable refund process by returning the ticket price back to the users' wallets while transferring the NFT back to the contract owner. By leveraging the ChanceRoom_Sang contract, the Sang Lottery aims to establish transparency and fairness in its proceedings. Through this smart contract, individuals are provided with an opportunity to participate in an engaging lottery experience, with the potential to win valuable NFTs.(The Sang Lottery operates under the Lott.Link platform, which facilitates the lottery process and ensures its smooth functioning.)";
+        _rule = "The ChanceRoom_Sang contract serves as a smart contract created for the purpose of facilitating a lottery-like game called Sang Lottery. This contract aims to provide an accessible platform where individuals can participate by purchasing tickets for a chance to win a valuable non-fungible token (NFT). In the Sang Lottery, users are able to acquire tickets through the contract by utilizing the `purchaseTicket` function and submitting the required ticket price. Once the ticket purchase is confirmed, the corresponding tickets are transferred to the buyer's wallet. Essentially, the contract manages the distribution of tickets and keeps a record of the number of tickets sold. Additionally, it sets a designated deadline for ticket purchases. If all tickets are sold prior to the deadline, the organizer can initiate the lottery drawing process. During the lottery drawing, the contract generates a random number, which can be obtained through Chainlink VRF version1, depending on the network. The winnerAddr of the lottery is determined based on this random number and subsequently receives the coveted NFT prize. In the event that all tickets are not sold before the specified deadline, participants have the option to refund their purchased tickets. The contract ensures a secure and reliable refund process by returning the ticket price back to the users' wallets while transferring the NFT back to the contract owner. By leveraging the ChanceRoom_Sang contract, the Sang Lottery aims to establish transparency and fairness in its proceedings. Through this smart contract, individuals are provided with an opportunity to participate in an engaging lottery experience, with the potential to win valuable NFTs.(The Sang Lottery operates under the Lott.Link platform, which facilitates the lottery process and ensures its smooth functioning.)";
         _initTime = AppStorage.layout().Uint256.initTime;
     }
 
@@ -223,7 +223,7 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
                 }
             } else {
                 s1 = "Sold out";
-                if(!app.Bool.triggered) {
+                if(!app.Bool.rolledup) {
                     s2 = "Waiting for roll up";
                 } else if(app.Uint256.winnerId == 0) {
                     s2 = "Waiting for ChainLink";
@@ -266,7 +266,7 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
         ) = status();
     
         return string.concat('data:application/json;base64,', Base64.encode(abi.encodePacked(
-            '{"name": "#', tokenId.toString(),
+            '{"name": "#', tokenId.toString(), ' / ', app.Uint256.soldTickets,
             '", "description": "', string.concat(_name, " ", _rule),
             '", "status": "', string.concat(s1, "_", s2),
             '", "image": "', _image(app.Address.tempAddr, tokenId), '"}'
@@ -297,25 +297,31 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
      * - user must provide the ticket price.
      */
     function purchaseTicket() public payable {
-        require(AppStorage.layout().Uint256.winnerId == 0, "ChanceRoom expired");
         require(AppStorage.layout().Uint256.soldTickets < AppStorage.layout().Uint256.maximumTicket, "tickets soldOut");
         require(msg.value >= AppStorage.layout().Uint256.ticketPrice, "insufficient fee");
         require(
-            block.timestamp < AppStorage.layout().Uint256.deadLine,
-            "time limit has reached"
+            AppStorage.layout().Bool.refunded == false,
+            "This chance room has refunded"
+        );
+        require(
+            AppStorage.layout().Bool.rolledup == false,
+            "This chance room has rolledup before"
         );
         safeMint(msg.sender);
         AppStorage.layout().Uint256.soldTickets ++;
     }
 
     /**
-     * @dev Triggers the random number consumer to generate a random.
+     * @dev Rollups the random number consumer to generate a random.
      * 
      * Requirements:
      * 
      * - tickets must be sold out.
+     * 
+     * @notice if there is not enough LINK token in the contract, it will be obtain autumatically from uniswap MATIC-LINK swapper.
+     * @notice the rest of LINK token is transfered to the function caller.
      */
-    function trigger() public payable {
+    function rollup() public payable {
         require(
             AppStorage.layout().Uint256.soldTickets == AppStorage.layout().Uint256.maximumTicket, 
             "tickets are not full sold"
@@ -324,31 +330,36 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
             AppStorage.layout().Bool.refunded == false,
             "This chance room has refunded"
         );
+        if(block.timestamp < AppStorage.layout().Uint256.deadLine) {
+            require(msg.sender == owner(), "only owner can rollup before deadline");
+        }
 
-        AppStorage.layout().Bool.triggered = true;
+        AppStorage.layout().Bool.rolledup = true;
         if(chainId() == 137) {
             if(LINK.balanceOf(address(this)) < linkFee){
-                swap_MATIC_LINK677(linkFee, 0.5 * 10 ** 18);
+                swap_MATIC_LINK677(0.5 * 10 ** 18);
             }
             chainlinkRequestId = _getRandomNumber();
             
         } else {
             _select(block.timestamp);
         }
+        
+        LINK.transfer(msg.sender, LINK.balanceOf(address(this)));
 
-        emit Trigger(msg.sender);
+        emit Rollup(msg.sender);
     }
 
     /**
      * @dev Allows the contract owner to refund all purchased tickets if certain conditions are met.
-     * The function checks if the chance room has not triggered before, if the refund time has been reached,
+     * The function checks if the chance room has not rolledup before, if the refund time has been reached,
      * and if all tickets have not been sold out. If the conditions are met, the function refunds all ticket buyers
      * by transferring the ticket price back to their wallets and transfers the NFT to the contract owner.
      * Finally, the refunded flag is set to true and the Refund event is emitted.
      * 
      * Requirements:
      * 
-     * - The chance room has not triggered before.
+     * - The chance room has not rolledup before.
      * - The refund time has been reached.
      * - All tickets have not been sold out.
      * 
@@ -357,8 +368,8 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
     function refund() public {
         uint256 numTickets = AppStorage.layout().Uint256.soldTickets;
         require(
-            AppStorage.layout().Bool.triggered == false,
-            "This chance room has triggered before"
+            AppStorage.layout().Bool.rolledup == false,
+            "This chance room has rolledup before"
         );
         require(
             block.timestamp >= AppStorage.layout().Uint256.deadLine,
@@ -387,23 +398,29 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
     }
 
     /**
-     * @dev returns the random number and selects the winner.
+     * @dev returns the random number and selects the winnerAddr.
      * 
      * Only chainlink RNC can call this function
      */
     function _select(uint256 randomness) internal override {
-        (uint256 winnerId, address winner) = findWinner(
+        (uint256 winnerId, address winnerAddr) = findWinner(
                 randomness, AppStorage.layout().Uint256.soldTickets
             );
         chainlinkRandomness = randomness;
         AppStorage.layout().Uint256.winnerId = winnerId;
-        IERC721(AppStorage.layout().Address.nftAddr).safeTransferFrom(address(this), winner, AppStorage.layout().Uint256.nftId);
+        IERC721(AppStorage.layout().Address.nftAddr).safeTransferFrom(address(this), winnerAddr, AppStorage.layout().Uint256.nftId);
         payable(owner()).transfer(address(this).balance);
     }
 
-    function findWinner(uint256 randomness, uint256 numTickets) public view returns(uint256 winnerId, address winner) {
+    function findWinner(uint256 randomness, uint256 numTickets) public view returns(uint256 winnerId, address winnerAddr) {
         winnerId = randomness % numTickets + 1;
-        winner = ownerOf(winnerId);
+        winnerAddr = ownerOf(winnerId);
+    }
+
+    function winner() public view returns(uint256 winnerId, address winnerAddr) {
+        if(chainlinkRandomness != 0) {
+            return findWinner(chainlinkRandomness, AppStorage.layout().Uint256.soldTickets);
+        }
     }
 
 

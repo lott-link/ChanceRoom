@@ -1,5 +1,4 @@
 require("@nomicfoundation/hardhat-toolbox");
-require("hardhat-gas-reporter");
 
 const { PRIVATE_KEY, SMARTCHAIN_API_KEY, MUMBAI_API_KEY, POLYGONSCAN_API_KEY, COINMARKETCAP_API_KEY } = require('./secret.json');
 
@@ -16,6 +15,11 @@ module.exports = {
    }
   },
   networks: {
+    eth: {
+      url: `https://eth.llamarpc.com/`,
+      accounts: [`0x${PRIVATE_KEY}`],
+      chainId: 1
+    },
     polygon: {
       url: `https://polygon-rpc.com/`,
       // url: `https://rpc-mainnet.maticvigil.com`,
@@ -31,15 +35,6 @@ module.exports = {
       accounts: [`0x${PRIVATE_KEY}`],
       chainId: 80001
     },
-  },
-  gasReporter: {
-    enabled: true,
-    currency: 'USD',
-    outputFile: 'gas-reporter-matic.txt',
-    noColors: true,
-    coinmarketcap: `${COINMARKETCAP_API_KEY}`,
-    gasPrice: 21,
-    token: 'MATIC'
   },
   etherscan: {
     apiKey: {

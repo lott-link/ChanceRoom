@@ -29,7 +29,7 @@ import "../utils/OwnableFactory.sol";
 contract ChanceRoom_Timer is Initializable, OwnableFactory, TemplateView, ERC721Holder, ERC721Upgradeable, ERC721EnumerableUpgradeable, VRFConsumer, Swapper {
     using Strings for uint256;
 
-    event Trigger(address msgSender);
+    event Rollup(address msgSender);
 
     string constant implName = "Timer";
     address immutable implAddr;
@@ -107,7 +107,7 @@ contract ChanceRoom_Timer is Initializable, OwnableFactory, TemplateView, ERC721
         uint256 _initTime
     ) {
         _name = name();
-        _rule = "TIMER LOTTERY: tick tock until the trigger pulled";
+        _rule = "TIMER LOTTERY: tick tock until the rollup pulled";
     }
 
     function ticketPrice() public view returns(uint256 price) {
@@ -135,13 +135,13 @@ contract ChanceRoom_Timer is Initializable, OwnableFactory, TemplateView, ERC721
         AppStorage.layout().Uint256.soldTickets ++;
     }
 
-    function trigger() public {
+    function rollup() public {
         require(
             block.timestamp >= AppStorage.layout().Uint256.deadLine, 
-            "trigger time has not reached"
+            "rollup time has not reached"
         );
 
-        AppStorage.layout().Bool.triggered = true;
+        AppStorage.layout().Bool.rolledup = true;
 
         if(chainId() == 137) {
             _getRandomNumber();
@@ -149,7 +149,7 @@ contract ChanceRoom_Timer is Initializable, OwnableFactory, TemplateView, ERC721
             _select(block.timestamp);
         }
 
-        emit Trigger(msg.sender);
+        emit Rollup(msg.sender);
     }
 
     function _select(uint256 randomness) internal override {
