@@ -48,6 +48,7 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
 
     event Refund(uint256 numTickets);
     event Rollup(address msgSender);
+    event Response(address winner, uint256 ticketId);
 
     /**
      * @dev Constructor function for the ChanceRoom contract.
@@ -251,10 +252,10 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
      */
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
         _requireMinted(tokenId);
-        if(tokenId == 0) {
-            return IERC721Metadata(AppStorage.layout().Address.nftAddr).tokenURI(AppStorage.layout().Uint256.nftId);
-        }
         AppStorage.Layout storage app = AppStorage.layout();
+        if(tokenId == 0) {
+            return IERC721Metadata(app.Address.nftAddr).tokenURI(app.Uint256.nftId);
+        }
         (
             string memory _name, 
             string memory _rule,
@@ -266,7 +267,7 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
         ) = status();
     
         return string.concat('data:application/json;base64,', Base64.encode(abi.encodePacked(
-            '{"name": "#', tokenId.toString(), ' / ', app.Uint256.soldTickets,
+            '{"name": "#', tokenId.toString(), ' / ', app.Uint256.maximumTicket.toString(),
             '", "description": "', string.concat(_name, " ", _rule),
             '", "status": "', string.concat(s1, "_", s2),
             '", "image": "', _image(app.Address.tempAddr, tokenId), '"}'
@@ -309,6 +310,38 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
         );
         safeMint(msg.sender);
         AppStorage.layout().Uint256.soldTickets ++;
+    }
+
+    /**
+     * @dev Buys specific number of tickets.
+     * 
+     * @notice the number of tickets depends on the payable MATIC value.
+     * 
+     * Requirements:
+     * 
+     * - the chance room must be working and not ended.
+     * - tickets must be not sold out.
+     * - user must provide the ticket price.
+     */
+    function purchaseBatchTicket() public payable {
+        uint256 _ticketPrice = AppStorage.layout().Uint256.ticketPrice;
+        require(AppStorage.layout().Uint256.soldTickets < AppStorage.layout().Uint256.maximumTicket, "tickets soldOut");
+        require(msg.value >= _ticketPrice, "insufficient fee");
+        require(
+            AppStorage.layout().Bool.refunded == false,
+            "This chance room has refunded"
+        );
+        require(
+            AppStorage.layout().Bool.rolledup == false,
+            "This chance room has rolledup before"
+        );
+        uint256 numTickets = msg.value / _ticketPrice;
+        unchecked {
+            for(uint256 i; i < numTickets; i++){
+                safeMint(msg.sender);
+            }
+            AppStorage.layout().Uint256.soldTickets += numTickets;
+        }
     }
 
     /**
@@ -410,6 +443,7 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
         AppStorage.layout().Uint256.winnerId = winnerId;
         IERC721(AppStorage.layout().Address.nftAddr).safeTransferFrom(address(this), winnerAddr, AppStorage.layout().Uint256.nftId);
         payable(owner()).transfer(address(this).balance);
+        emit Response(winnerAddr, winnerId);
     }
 
     function findWinner(uint256 randomness, uint256 numTickets) public view returns(uint256 winnerId, address winnerAddr) {

@@ -12,11 +12,12 @@ async function deploySang() {
   // deploy implementation
   const Sang = await ethers.getContractFactory("ChanceRoom_Sang");
   const sang = await Sang.deploy(factoryAddr);
+  console.log("deploy request sent...");
   await sang.deployed();
   console.log("Sang addr : ", sang.address);
-  await delay(20000)
+  // await delay(20000)
 
-  await verify(sang.address, [factoryAddr])
+  // await verify(sang.address, [factoryAddr])
 
 }
 deploySang();

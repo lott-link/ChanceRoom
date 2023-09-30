@@ -5,7 +5,7 @@ const { PRIVATE_KEY, SMARTCHAIN_API_KEY, MUMBAI_API_KEY, POLYGONSCAN_API_KEY, CO
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   solidity: {
-  version: "0.8.18",
+  version: "0.8.19",
   settings: {
     // "viaIR": true,
     optimizer: {
@@ -25,7 +25,8 @@ module.exports = {
       // url: `https://rpc-mainnet.maticvigil.com`,
       // url: `https://rpc.ankr.com/polygon/`,
       accounts: [`0x${PRIVATE_KEY}`],
-      // gasPrice: 500 * 10 ** 9,
+      // gasPrice: 163646828893,
+      gasPrice: 120000000000,
       chainId: 137
     },
     polygonMumbai: {
