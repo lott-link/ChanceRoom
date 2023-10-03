@@ -25,6 +25,7 @@ import "./utils/AppStorage.sol";
 import "./utils/VRFConsumer.sol";
 import "./utils/Swapper.sol";
 import "./utils/OwnableFactory.sol";
+import "./utils/DoubleEndedQueue.sol";
 
 
 /**
@@ -35,10 +36,13 @@ import "./utils/OwnableFactory.sol";
  * @dev This contract is implemented using the Lott-link API and Chainlink RNC to ensure a fair and secure chanceroom.
  */
 contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, TemplateView, ERC721Holder, ERC721Upgradeable, VRFConsumer, Swapper {
+    using DoubleEndedQueue for DoubleEndedQueue.Uint256Deque;
     using Counters for Counters.Counter;
     using Strings for uint256;
 
     Counters.Counter private _tokenIdCounter;
+    DoubleEndedQueue.Uint256Deque private _refundedTickets;
+    mapping(uint256 => bool) private _ticketEnqueud;
 
     string constant implName = "Sang";
     address immutable implAddr;
@@ -118,6 +122,7 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
             id := chainid()
         }
     }
+
     /**
      * @dev Returns the name, address and the id of the valuable NFT associated with the ChanceRoom.
      * @return name - the name of the NFT.
@@ -299,7 +304,8 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
      */
     function purchaseTicket() public payable {
         require(AppStorage.layout().Uint256.soldTickets < AppStorage.layout().Uint256.maximumTicket, "tickets soldOut");
-        require(msg.value >= AppStorage.layout().Uint256.ticketPrice, "insufficient fee");
+        uint256 _ticketPrice = AppStorage.layout().Uint256.ticketPrice;
+        require(msg.value >= _ticketPrice, "insufficient fee");
         require(
             AppStorage.layout().Bool.refunded == false,
             "This chance room has refunded"
@@ -308,7 +314,14 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
             AppStorage.layout().Bool.rolledup == false,
             "This chance room has rolledup before"
         );
-        safeMint(msg.sender);
+        if(_refundedTickets.empty()){
+            safeMint(msg.sender);
+        } else {
+            uint256 ticketId = _refundedTickets.popBack();
+            address recepient = ownerOf(ticketId);
+            _transfer(recepient, msg.sender, ticketId);
+            payable(recepient).transfer(_ticketPrice);
+        }
         AppStorage.layout().Uint256.soldTickets ++;
     }
 
@@ -323,10 +336,13 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
      * - tickets must be not sold out.
      * - user must provide the ticket price.
      */
-    function purchaseBatchTicket() public payable {
+    function purchaseBatchTicket(uint256 numTickets) public payable {
         uint256 _ticketPrice = AppStorage.layout().Uint256.ticketPrice;
-        require(AppStorage.layout().Uint256.soldTickets < AppStorage.layout().Uint256.maximumTicket, "tickets soldOut");
-        require(msg.value >= _ticketPrice, "insufficient fee");
+        require(
+            AppStorage.layout().Uint256.soldTickets + numTickets
+             <= AppStorage.layout().Uint256.maximumTicket, "tickets soldOut"
+        );
+        require(msg.value >= _ticketPrice * numTickets, "insufficient fee");
         require(
             AppStorage.layout().Bool.refunded == false,
             "This chance room has refunded"
@@ -335,13 +351,54 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
             AppStorage.layout().Bool.rolledup == false,
             "This chance room has rolledup before"
         );
-        uint256 numTickets = msg.value / _ticketPrice;
         unchecked {
             for(uint256 i; i < numTickets; i++){
-                safeMint(msg.sender);
+                if(_refundedTickets.empty()){
+                    safeMint(msg.sender);
+                } else {
+                    uint256 ticketId = _refundedTickets.popBack();
+                    _ticketEnqueud[ticketId] = true;
+                    address recepient = ownerOf(ticketId);
+                    _transfer(recepient, msg.sender, ticketId);
+                    payable(recepient).transfer(_ticketPrice);
+                }
             }
             AppStorage.layout().Uint256.soldTickets += numTickets;
         }
+    }
+
+    
+
+    /**
+     * @dev Adds the ticket to the waiting list for the nextOne who purchases the ticket.
+     * 
+     * Requirements:
+     * 
+     * - Only owner of the thicket can refund it.
+     * 
+     * @notice The ticket is yours until someone else buys it.
+     * @notice You get the fund back, as someone pays for your refunded ticket.
+     */
+    function refundTicket(uint256 ticketId) public {
+        require(
+            AppStorage.layout().Bool.refunded == false,
+            "This chance room is all refunded"
+        );
+        require(
+            AppStorage.layout().Bool.rolledup == false,
+            "This chance room has rolledup"
+        );
+        require(
+            _isApprovedOrOwner(msg.sender, ticketId), 
+            "Only owner or approved address can refund the ticket"
+        );
+        require(
+            !_ticketEnqueud[ticketId], 
+            "the ticket has enqueued before."
+        );
+        _ticketEnqueud[ticketId] = true;
+        _refundedTickets.pushFront(ticketId);
+        AppStorage.layout().Uint256.soldTickets --;
     }
 
     /**
