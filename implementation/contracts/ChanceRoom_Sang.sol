@@ -42,7 +42,6 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
 
     Counters.Counter private _tokenIdCounter;
     DoubleEndedQueue.Uint256Deque private _refundedTickets;
-    mapping(uint256 => bool) private _ticketEnqueud;
 
     string constant implName = "Sang";
     address immutable implAddr;
@@ -357,10 +356,7 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
                     safeMint(msg.sender);
                 } else {
                     uint256 ticketId = _refundedTickets.popBack();
-                    _ticketEnqueud[ticketId] = true;
-                    address recepient = ownerOf(ticketId);
-                    _transfer(recepient, msg.sender, ticketId);
-                    payable(recepient).transfer(_ticketPrice);
+                    _safeMint(msg.sender, ticketId);
                 }
             }
             AppStorage.layout().Uint256.soldTickets += numTickets;
@@ -392,12 +388,9 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
             _isApprovedOrOwner(msg.sender, ticketId), 
             "Only owner or approved address can refund the ticket"
         );
-        require(
-            !_ticketEnqueud[ticketId], 
-            "the ticket has enqueued before."
-        );
-        _ticketEnqueud[ticketId] = true;
         _refundedTickets.pushFront(ticketId);
+        _burn(ticketId);
+        payable(msg.sender).transfer(AppStorage.layout().Uint256.ticketPrice);
         AppStorage.layout().Uint256.soldTickets --;
     }
 
@@ -473,8 +466,10 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
         address payable user;
         uint256 _ticketPrice = AppStorage.layout().Uint256.ticketPrice;
         for(uint256 i = 1; i <= numTickets; i++) {
-            user = payable(ownerOf(i));
-            user.transfer(_ticketPrice);
+            if(_exists(i)){
+                user = payable(ownerOf(i));
+                user.transfer(_ticketPrice);
+            }
         }
         IERC721(AppStorage.layout().Address.nftAddr).safeTransferFrom(address(this), owner(), AppStorage.layout().Uint256.nftId);
         AppStorage.layout().Bool.refunded = true;
