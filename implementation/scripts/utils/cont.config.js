@@ -3,6 +3,7 @@ const { network } = require("hardhat");
 const zero_address = "0x0000000000000000000000000000000000000000"
 
 let factoryAddr = zero_address
+let swapBurnerAddr = zero_address
 
   if(network.config.chainId == 137) {
 

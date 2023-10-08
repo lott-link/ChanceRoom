@@ -10,7 +10,8 @@
 
     await nft.connect(user2).approve(clonedAddr, 0)
     await cloned.connect(user2).initialize(
-      "BlackTicket", //tempName
+      "BlackTicket", // tempName
+      "IMG_URI",     // nft image uri
       nft.address,   // _nftAddr
       "0",           // _nftId
       "6",           // _maximumTicket
