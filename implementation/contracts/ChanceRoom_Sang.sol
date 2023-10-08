@@ -19,6 +19,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 import "./interfaces/IChanceRoom.sol";
 import "./utils/TemplateView.sol";
 import "./utils/AppStorage.sol";
@@ -38,6 +39,7 @@ import "./utils/DoubleEndedQueue.sol";
 contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, TemplateView, ERC721Holder, ERC721Upgradeable, VRFConsumer, Swapper {
     using DoubleEndedQueue for DoubleEndedQueue.Uint256Deque;
     using Counters for Counters.Counter;
+    using Address for address payable;
     using Strings for uint256;
 
     Counters.Counter private _tokenIdCounter;
@@ -45,9 +47,11 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
 
     string constant implName = "Sang";
     address immutable implAddr;
+    address payable immutable swapBurner;
 
     bytes32 public chainlinkRequestId;
     uint256 public chainlinkRandomness;
+    string public NFT_IMG_URI;
 
     event Refund(uint256 numTickets);
     event Rollup(address msgSender);
@@ -59,9 +63,10 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
      * This contract inherits from OwnableFactory, which provides ownership functions to control access to the contract.
      * The implementation address of the ChanceRoom contract is set to the address of this contract.
     */
-    constructor(IFactory chanceRoomFactory)
+    constructor(IFactory chanceRoomFactory, address payable swapBurnerAddr)
         OwnableFactory(chanceRoomFactory)
     {
+        swapBurner = swapBurnerAddr;
         implAddr = address(this);
     }
     
@@ -81,6 +86,7 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
      */
     function initialize(
         string memory _tempName_,
+        string memory _nft_img_uri,
         address _nftAddr_,
         uint256 _nftId_,
         uint256 _maximumTicket_,
@@ -92,6 +98,7 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
             string.concat("ChanceRoom_Sang on ", IERC721Metadata(_nftAddr_).name(), " : ", _nftId_.toString()), 
             "CRS"
         );
+        NFT_IMG_URI = _nft_img_uri;
         (address tempAddr,) = ChanceRoomFactory.tempLatestVersion(_tempName_);
         AppStorage.layout().Uint256.initTime = block.timestamp;
         AppStorage.layout().Uint256.deadLine = block.timestamp + _holdingTime_;
@@ -434,6 +441,7 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
             _select(block.timestamp);
         }
         
+        swapBurner.sendValue(address(this).balance * 1/100);
         LINK.transfer(msg.sender, LINK.balanceOf(address(this)));
 
         emit Rollup(msg.sender);
@@ -454,7 +462,7 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
      * 
      * Emits a {Refund} event indicating the number of refunded tickets.
      */
-    function refund() public {
+    function refund() public payable {
         uint256 maxTickets = AppStorage.layout().Uint256.maximumTicket;
         uint256 numTickets = AppStorage.layout().Uint256.soldTickets;
         require(
