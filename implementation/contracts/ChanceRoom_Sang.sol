@@ -194,6 +194,10 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
      */
     function ticketPrice() public view returns(uint256) {
         return AppStorage.layout().Uint256.ticketPrice;
+    }
+    
+    function ticketsPrice(uint256 numTickets) public view returns(uint256) {
+        return AppStorage.layout().Uint256.ticketPrice * numTickets;
     } 
 
     /**
@@ -303,7 +307,7 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
      */
     function purchaseTicket() public payable {
         require(AppStorage.layout().Uint256.soldTickets < AppStorage.layout().Uint256.maximumTicket, "tickets soldOut");
-        uint256 _ticketPrice = AppStorage.layout().Uint256.ticketPrice;
+        uint256 _ticketPrice = ticketPrice();
         require(msg.value >= _ticketPrice, "insufficient fee");
         require(
             AppStorage.layout().Bool.refunded == false,
@@ -317,9 +321,7 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
             safeMint(msg.sender);
         } else {
             uint256 ticketId = _refundedTickets.popBack();
-            address recepient = ownerOf(ticketId);
-            _transfer(recepient, msg.sender, ticketId);
-            payable(recepient).transfer(_ticketPrice);
+            _safeMint(msg.sender, ticketId);
         }
         AppStorage.layout().Uint256.soldTickets ++;
     }
@@ -336,7 +338,7 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
      * - user must provide the ticket price.
      */
     function purchaseBatchTicket(uint256 numTickets) public payable {
-        uint256 _ticketPrice = AppStorage.layout().Uint256.ticketPrice;
+        uint256 _ticketPrice = ticketPrice();
         require(
             AppStorage.layout().Uint256.soldTickets + numTickets
              <= AppStorage.layout().Uint256.maximumTicket, "tickets soldOut"
@@ -385,12 +387,16 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
             "This chance room has rolledup"
         );
         require(
+            AppStorage.layout().Uint256.soldTickets <
+            AppStorage.layout().Uint256.maximumTicket, "tickets soldOut"
+        );
+        require(
             _isApprovedOrOwner(msg.sender, ticketId), 
             "Only owner or approved address can refund the ticket"
         );
         _refundedTickets.pushFront(ticketId);
         _burn(ticketId);
-        payable(msg.sender).transfer(AppStorage.layout().Uint256.ticketPrice);
+        payable(msg.sender).transfer(ticketPrice());
         AppStorage.layout().Uint256.soldTickets --;
     }
 
@@ -449,30 +455,33 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
      * Emits a {Refund} event indicating the number of refunded tickets.
      */
     function refund() public {
+        uint256 maxTickets = AppStorage.layout().Uint256.maximumTicket;
         uint256 numTickets = AppStorage.layout().Uint256.soldTickets;
         require(
             AppStorage.layout().Bool.rolledup == false,
             "This chance room has rolledup before"
         );
         require(
+            AppStorage.layout().Bool.refunded == false,
+            "This chance room has refunded"
+        );
+        require(
             block.timestamp >= AppStorage.layout().Uint256.deadLine,
             "refund time has not reached"
         );
         require(
-            numTickets < AppStorage.layout().Uint256.maximumTicket, 
+            numTickets < maxTickets, 
             "tickets has sold out"
         );
 
-        address payable user;
-        uint256 _ticketPrice = AppStorage.layout().Uint256.ticketPrice;
-        for(uint256 i = 1; i <= numTickets; i++) {
+        AppStorage.layout().Bool.refunded = true;
+        uint256 _ticketPrice = ticketPrice();
+        for(uint256 i = 1; i <= maxTickets; i++) {
             if(_exists(i)){
-                user = payable(ownerOf(i));
-                user.transfer(_ticketPrice);
+                payable(ownerOf(i)).transfer(_ticketPrice);
             }
         }
         IERC721(AppStorage.layout().Address.nftAddr).safeTransferFrom(address(this), owner(), AppStorage.layout().Uint256.nftId);
-        AppStorage.layout().Bool.refunded = true;
         emit Refund(numTickets);
     }
 

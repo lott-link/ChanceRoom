@@ -108,6 +108,33 @@ contract ChanceRoomFactory is ERC721Upgradeable, ERC721EnumerableUpgradeable, Ow
         emit Clone(creatorAddr, IERC721Metadata(implAddr).name(), chanceRoomAddr, implVersion);
     }
 
+    /**
+     * @dev Creates a new ChanceRoom contract by cloning an existing implementation contract, determined by the 
+     * provided name and salt and version.
+     * @param implName The name of the implementation contract to be cloned.
+     * @param salt A random value used to determine the address of the new ChanceRoom contract.
+     * @param implVersion the version of implementation to clone.
+     * @return chanceRoomAddr The address of the newly created ChanceRoom contract.
+     */
+    function newChanceRoomByVersion(string memory implName, bytes32 salt, uint256 implVersion) public returns(address chanceRoomAddr) {
+        address creatorAddr = msg.sender;
+        // Retrieves the latest version of the implementation contract.
+        (address implAddr) = implVersionAddr(implName, implVersion);
+        // Clones the implementation contract to create the new ChanceRoom contract.
+        chanceRoomAddr = implAddr.cloneDeterministic(salt);
+        // Ensures that the power of the new ChanceRoom address is greater than or equal to the minimum power set 
+        // by the owner.
+        require(chanceRoomAddr.power() >= minPower);
+        // Generates a unique token ID for the new ChanceRoom contract.
+        uint256 tokenId = uint256(uint160(chanceRoomAddr));
+        // Mints a new ERC721 token representing the new ChanceRoom contract and assigns it to the creator.
+        _safeMint(creatorAddr, tokenId);
+        // Records the version of the implementation contract used to create the new ChanceRoom contract.
+        chanceRoomVersion[chanceRoomAddr] = implVersion;
+        // Emits an event indicating that a new ChanceRoom contract has been created.
+        emit Clone(creatorAddr, IERC721Metadata(implAddr).name(), chanceRoomAddr, implVersion);
+    }
+
 
     /**
      * @dev Returns the predicted address of the next ChanceRoom that will be cloned by the ChanceRoomFactory using 
@@ -264,6 +291,19 @@ contract ChanceRoomFactory is ERC721Upgradeable, ERC721EnumerableUpgradeable, Ow
         version = _templates[tempName].addrs.length;
         require(version != 0, "non existing template address");
         tempAddr = _templates[tempName].addrs[version - 1];
+    }
+    
+    /**
+     * @dev Returns the address of a certain version of a implementation.
+     * 
+     * @param implName The name of the implementation to check.
+     * @param version The version number of the implementation to get the address for.
+     * 
+     * @return implAddr The address of the specified version of the implementation.
+     */
+    function implVersionAddr(string memory implName, uint256 version) public view returns(address implAddr) {
+        require(_implementations[implName].addrs.length >= version, "non existing implementation address");
+        implAddr = _implementations[implName].addrs[version - 1];
     }
     
     /**
