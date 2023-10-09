@@ -26,13 +26,13 @@ module.exports = {
       // url: `https://rpc.ankr.com/polygon/`,
       accounts: [`0x${PRIVATE_KEY}`],
       // gasPrice: 163646828893,
-      gasPrice: 120000000000,
+      // gasPrice: 120000000000,
       chainId: 137
     },
     polygonMumbai: {
       // url: `https://matic-mumbai.chainstacklabs.com`,
-      // url: `https://rpc.ankr.com/polygon_mumbai`,
-      url: `https://polygon-mumbai.blockpi.network/v1/rpc/public`,
+      url: `https://rpc.ankr.com/polygon_mumbai`,
+      // url: `https://polygon-mumbai.blockpi.network/v1/rpc/public`,
       accounts: [`0x${PRIVATE_KEY}`],
       chainId: 80001
     },

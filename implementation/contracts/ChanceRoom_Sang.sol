@@ -190,7 +190,7 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
         uint256 _initTime
     ) {
         _name = name();
-        _rule = "The ChanceRoom_Sang contract serves as a smart contract created for the purpose of facilitating a lottery-like game called Sang Lottery. This contract aims to provide an accessible platform where individuals can participate by purchasing tickets for a chance to win a valuable non-fungible token (NFT). In the Sang Lottery, users are able to acquire tickets through the contract by utilizing the `purchaseTicket` function and submitting the required ticket price. Once the ticket purchase is confirmed, the corresponding tickets are transferred to the buyer's wallet. Essentially, the contract manages the distribution of tickets and keeps a record of the number of tickets sold. Additionally, it sets a designated deadline for ticket purchases. If all tickets are sold prior to the deadline, the organizer can initiate the lottery drawing process. During the lottery drawing, the contract generates a random number, which can be obtained through Chainlink VRF version1, depending on the network. The winnerAddr of the lottery is determined based on this random number and subsequently receives the coveted NFT prize. In the event that all tickets are not sold before the specified deadline, participants have the option to refund their purchased tickets. The contract ensures a secure and reliable refund process by returning the ticket price back to the users' wallets while transferring the NFT back to the contract owner. By leveraging the ChanceRoom_Sang contract, the Sang Lottery aims to establish transparency and fairness in its proceedings. Through this smart contract, individuals are provided with an opportunity to participate in an engaging lottery experience, with the potential to win valuable NFTs.(The Sang Lottery operates under the Lott.Link platform, which facilitates the lottery process and ensures its smooth functioning.)";
+        _rule = "The ChanceRoom_Sang contract serves as a smart contract created for the purpose of facilitating a lottery-like game called Sang Lottery. This contract aims to provide an accessible platform where individuals can participate by purchasing tickets for a chance to win a valuable non-fungible token (NFT). In the Sang Lottery, users are able to acquire tickets through the contract by utilizing the `purchaseTicket` function and submitting the required ticket price. Once the ticket purchase is confirmed, the corresponding tickets are transferred to the buyer's wallet. Essentially, the contract manages the distribution of tickets and keeps a record of the number of tickets sold. Additionally, it sets a designated deadline for ticket purchases. If all tickets are sold prior to the deadline, the organizer can initiate the lottery drawing process. During the lottery drawing, the contract generates a random number, which can be obtained through Chainlink VRF version1, depending on the network. The winnerAddr of the lottery is determined based on this random number and subsequently receives the coveted NFT prize. In the event that all tickets are not sold before the specified deadline, participants have the option to refund their purchased tickets. The contract ensures a secure and reliable refund process by returning the ticket price back to the users' wallets while transferring the NFT back to the contract owner. By leveraging the ChanceRoom_Sang contract, the Sang Lottery aims to establish transparency and fairness in its proceedings. Through this smart contract, individuals are provided with an opportunity to participate in an engaging lottery experience, with the potential to win valuable NFTs.(The Sang Lottery operates under the Lott.Link platform, which facilitates the lottery process and ensures its smooth functioning.) In V6: added purchaseBatchTicket and also refund ticket any time before fully sold out is possible.";
         _initTime = AppStorage.layout().Uint256.initTime;
     }
 
@@ -202,7 +202,12 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
     function ticketPrice() public view returns(uint256) {
         return AppStorage.layout().Uint256.ticketPrice;
     }
-    
+
+    /**
+     * @dev Returns the price of multiple Tickets.
+     * 
+     * @return The ticket price in uint256.
+     */    
     function ticketsPrice(uint256 numTickets) public view returns(uint256) {
         return AppStorage.layout().Uint256.ticketPrice * numTickets;
     } 
@@ -301,6 +306,17 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
     function changeTemplate(string memory tempName) public onlyOwner {
         (address tempAddr,) = ChanceRoomFactory.tempLatestVersion(tempName);
         AppStorage.layout().Address.tempAddr = tempAddr;
+    }
+    
+    /**
+     * @dev Changes the NFT image uri used by the chance room.
+     * 
+     * Requirements:
+     * 
+     * - only owner of the contract is allowed to call this function.
+     */
+    function change_NFT_IMG_URI(string memory _nft_img_uri) public onlyOwner {
+        NFT_IMG_URI = _nft_img_uri;
     }
 
     /**
