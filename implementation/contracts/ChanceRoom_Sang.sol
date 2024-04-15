@@ -423,6 +423,33 @@ contract ChanceRoom_Sang is IChanceRoom, Initializable, OwnableFactory, Template
         AppStorage.layout().Uint256.soldTickets --;
     }
 
+    function refundTickets(uint256[] calldata ticketIds) public{
+        require(
+            AppStorage.layout().Bool.refunded == false,
+            "This chance room is all refunded"
+        );
+        require(
+            AppStorage.layout().Bool.rolledup == false,
+            "This chance room has rolledup"
+        );
+        require(
+            AppStorage.layout().Uint256.soldTickets <
+            AppStorage.layout().Uint256.maximumTicket, "tickets soldOut"
+        );
+
+        for (uint i = 0; i < ticketIds.length; i++) {
+            require(
+                _isApprovedOrOwner(msg.sender, ticketIds[i]), 
+                "Only owner or approved address can refund the ticket"
+            );
+            _refundedTickets.pushFront(ticketIds[i]);
+            _burn(ticketIds[i]);
+        }
+        payable(msg.sender).transfer(ticketIds.length*ticketPrice());
+        AppStorage.layout().Uint256.soldTickets -= ticketIds.length;
+
+    }
+
     /**
      * @dev Rollups the random number consumer to generate a random.
      * 
